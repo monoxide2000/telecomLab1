@@ -1,0 +1,182 @@
+---
+title: "ACPRE153 - Telecomunicaciones"
+subtitle: "Serie trigonométrica de Fourier"
+author: "Julio César Ramírez Pacheco"
+date: "12/10/2020"
+output:
+   prettydoc::html_pretty:
+      theme: tactile
+      highlight: vignette
+---
+
+
+```{r knitr_init, echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+library(knitr)
+library(rmdformats)
+library(highcharter)
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+## Serie trigonométrica de Fourier
+
+La serie trigonométrica de Fourier es una herramienta matemática que permite descomponer señales periódicas con período $T$ (ie., $f(t+T)=f(t)$) en señales más simples (en este caso la señales simples serían señales seno y coseno). La simplicidad de las señales senoidales se da en el contexto del dominio de la frecuencia, en donde representan un punto (es decir una sola frecuencia $f_i$). De una forma más formal, una función periódica,
+
+$$
+f(t) = f(t+T)
+$$
+se puede representar mediante una serie trigonométrica de Fourier si la función $f(t)$ se puede representar como una suma de señales senoidales, cosenoidales y una constante, es decir,
+$$
+f(t) = a_0+ \sum_{n=1}^{\infty}{\{a_n \mbox{cos}(n \omega_0 t)+  b_n \mbox{sen}(n \omega_0 t)\}}
+$$
+donde, los coeficientes $a_0$, $a_n$ y $b_n$ se llaman los coeficientes trigonométricos de Fourier. Es importante notar que cada coeficiente contribuye de forma importante en las características de las señal $f(t)$. Por ejemplo $a_0$ contribuye a incorporar el contenido de CD de la señal. Si la señal tiene area cero en un período, entonces $a_0=0$. Por otro lado $a_n$ contribuye al contenido de la parte par de la función $f(t)$ y $b_n$ contribuye al contenido antisimétrico de la señal $f(t)$, es decir de su parte impar. Debido a esto más adelante se verá que si intentamos representar a una función impar mediante la serie de Fourier entonces sólo existe $b_n$ mientras si representamos a una función par, sólo existen $a_n$ y $a_0$ y $a_0 = 0$ cuando el área de esa función sea $0$ en ese período. El problema del cálculo de la serie de Fourier, por lo tanto se reduce al cáculo de los coeficientes $a_0, a_n$ y $b_n$, los cuales pueden ser calculados mediante las siguientes fórmulas:
+
+$$
+\begin{align}
+a_0 = & \frac{1}{T}\int_{-T/2}^{T/2}{f(t) \, dt}\\
+a_n = & \frac{2}{T}\int_{-T/2}^{T/2}{f(t)\cos(n\omega_0 t) \, dt}\\
+b_n = & \frac{2}{T}\int_{-T/2}^{T/2}{f(t) \mbox{sen}(n\omega_0 t) \, dt}
+\end{align}
+$$
+Por lo tanto, para el cálculo de la serie de Fourier lo que se requiera hacer es:
+
+1. Calcular el período de la función $f(t)$.
+2. Calcular $\omega_0 = \frac{2 \pi}{T}$.
+3. Determinar $a_0, a_n$ y $b_n$.
+4. Sustituir los coeficientes en la fórmula de la serie trigonométrica.
+5. Opcionalmente graficar $f(t)$ contra sus aproximaciones.
+
+# Ejemplos
+
+## Ejemplo 1: función cuadrática par.
+
+Supóngamos que queremos representar la siguiente función mediante una serie de Fourier
+
+```{r quad1}
+t <- seq(-pi, 5*pi, length=500)
+original <- ifelse(t >= -pi & t < pi, t^2, ifelse(t >= pi & t < 3*pi, (t-2*pi)^2, ifelse(t >= 3*pi & t <= 5*pi, (t-4*pi)^2, 0)))
+highchart() %>% hc_add_series(cbind(t,original), name="Funcion cuadratica") %>% hc_add_theme(hc_theme_smpl()) %>% hc_title(text="Serie de Fourier") %>% hc_subtitle(text="ACPRE-153 - Telecomm") %>%
+  hc_xAxis(title=list(text="Tiempo")) %>% hc_yAxis(title=list(text="Valores de la funcion"))
+```
+
+Después de hacer los cálculos tenemos que:
+
+
+
+$$
+\begin{align}
+a_0 = & \frac{\pi^2}{3}\\
+a_n = & (-1)^n \frac{4}{n^2}
+\end{align}
+$$
+
+Por lo tanto, la aproximación de Fourier para $N=3$ está dada por:
+
+$$
+f_3(t) = \frac{\pi^2}{3} + 4 \times \sum_{n=1}^3{\frac{(-1)^n}{n^2}\cos(nt)}
+$$
+donde $T=2\pi$ y $\omega_0=1$. Graficando la aproximación para $N=3$ queda como:
+
+```{r quad2}
+t <- seq(-pi, 5*pi, length=500)
+original <- ifelse(t >= -pi & t < pi, t^2, ifelse(t >= pi & t < 3*pi, (t-2*pi)^2, ifelse(t >= 3*pi & t <= 5*pi, (t-4*pi)^2, 0)))
+N <- 3
+a0 <- (pi^2)/3
+ft <-a0
+for(n in 1:N)
+{
+  ft <- ft + ((-1)^n)*(4/(n^2))*cos(n*t)
+}
+highchart() %>% hc_add_series(cbind(t,original), name="Funcion cuadratica") %>% hc_add_series(cbind(t,ft), name="Funcion aproximada") %>% hc_add_theme(hc_theme_smpl()) %>% hc_title(text="Serie de Fourier") %>% hc_subtitle(text="ACPRE-153 - Telecomm") %>%
+  hc_xAxis(title=list(text="Tiempo")) %>% hc_yAxis(title=list(text="Valores de la funcion"))
+```
+
+## Ejemplo 2: función triangular impar
+
+En el siguiente ejemplo encontraremos la serie de Fourier trigonométrica para una función impar que está dada por la siguiente gráfica.
+
+
+
+```{r linear}
+t <- seq(-pi, 5*pi, length=500)
+original <- ifelse(t >= -pi & t < pi, t, ifelse(t >= pi & t < 3*pi, (t-2*pi), ifelse(t >= 3*pi & t <= 5*pi, (t-4*pi), 0)))
+highchart() %>% hc_add_series(cbind(t,original), name="Funcion lineal impar") %>% hc_add_theme(hc_theme_smpl()) %>% hc_title(text="Serie de Fourier") %>% hc_subtitle(text="ACPRE-153 - Telecomm") %>%
+  hc_xAxis(title=list(text="Tiempo")) %>% hc_yAxis(title=list(text="Valores de la funcion"))
+```
+
+Recordando que $a_0=a_n = 0$, sólo nos concentramos en hallar $b_n$, el cual está dado por:
+
+$$
+b_n = -\frac{2}{n}\cos(\pi n) = \frac{2}{n}(-1)^{n+1}
+$$
+
+La serie de Fourier, por lo tanto queda como:
+
+$$
+f(t) = 2 \times \sum_{n=1}^{\infty}{\frac{(-1)^{n+1}}{n}\mbox{sen}(nt)}
+$$
+
+y para $N=3$ que da como:
+
+$$
+f(t) = 2 \times \sum_{n=1}^{\infty}{\frac{(-1)^{n+1}}{n}\mbox{sen}(nt)}
+$$
+
+Graficando la señal original contra la aproximación queda como:
+
+
+```{r}
+t <- seq(-pi, 5*pi, length=500)
+original <- ifelse(t >= -pi & t < pi, t, ifelse(t >= pi & t < 3*pi, (t-2*pi), ifelse(t >= 3*pi & t <= 5*pi, (t-4*pi), 0)))
+N <- 3
+ft <-0
+for(n in 1:N)
+{
+  ft <- ft + 2*((-1)^(n+1))/(n)*sin(n*t)
+}
+highchart() %>% hc_add_series(cbind(t,original), name="Funcion lineal impar") %>% hc_add_series(cbind(t,ft), name="Funcion aproximada") %>% hc_add_theme(hc_theme_smpl()) %>% hc_title(text="Serie de Fourier") %>% hc_subtitle(text="ACPRE-153 - Telecomm") %>%
+  hc_xAxis(title=list(text="Tiempo")) %>% hc_yAxis(title=list(text="Valores de la funcion"))
+```
+
+Notese que la función no se aproxima adecuadamente para $N=3$, por lo tanto haciendo $N$ más grande tenemos que:
+
+
+```{r, message=FALSE, warning=FALSE}
+t <- seq(-pi, 5*pi, length=500)
+original <- ifelse(t >= -pi & t < pi, t, ifelse(t >= pi & t < 3*pi, (t-2*pi), ifelse(t >= 3*pi & t <= 5*pi, (t-4*pi), 0)))
+N <- 15
+ft <-0
+for(n in 1:N)
+{
+  ft <- ft + 2*((-1)^(n+1))/(n)*sin(n*t)
+}
+highchart() %>% hc_add_series(cbind(t,original), name="Funcion lineal impar") %>% hc_add_series(cbind(t,ft), name="Funcion aproximada") %>% hc_add_theme(hc_theme_smpl()) %>% hc_title(text="Serie de Fourier") %>% hc_subtitle(text="ACPRE-153 - Telecomm") %>%
+  hc_xAxis(title=list(text="Tiempo")) %>% hc_yAxis(title=list(text="Valores de la funcion"))
+```
+
+la señal se aproxima de mejor manera.
+
+
+## Ejercicios
+
+A continuación se desarrollará la serie trigonométrica de Fourier para las siguientes funciones (en todas las funciones siguientes $f(t+2\pi) = f(t)$) periodicas de período $2\pi$.
+
+1. $$f(t) = \begin{cases}1 & 0 < t < \pi\\
+-1 & \pi \le t < 2\pi
+\end{cases}$$
+
+
+2. $$f(t) = t, \, 0 \le t < 2\pi$$
+
+3. $$f(t) = t^2 \, 0 \le t < 2\pi$$
+
+4. $$f(t) = |x| \, -\pi \le t < \pi$$
+
